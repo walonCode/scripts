@@ -47,11 +47,22 @@ fi
 cd "$BASE_DIR/$project_name"
 
 #adding the tools i need
-if ! mkdir db validators; then 
-    echo "failed to create the db and validator dir"
+if ! mkdir db validators test; then 
+    echo "failed to create the db, test and validators dir"
     exit 1
 fi
 
+#test section
+cd test 
+
+if ! mkdir unit e2e; then
+    echo "fail to create the unit and e2e dir"
+    exit 1
+fi    
+
+cd ../
+
+#db section
 cd db
 
 #adding the setup for postgres sql
@@ -90,8 +101,23 @@ if ! pnpm add -D drizzle-kit @types/pg; then
 fi
 
 #adding the docker-compose file
-touch docker-compose.yml
-
+cat <<EOF > docker-compose.yml
+services:
+  postgres:
+    image: postgres:16.11-alpine
+    container_name: gov_postgress
+    restart: always
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gov_server
+    ports:
+      - "5432:5432"
+    volumes:
+      - gov_server:/var/lib/postgresql/data      
+volumes:
+  gov_server:
+EOF  
 
 # adding the drizzle config file
 cat <<EOF > drizzle.config.ts
@@ -108,4 +134,11 @@ export default defineConfig({
 });
 EOF
 
-#
+#adding zod, axios 
+if ! pnpm add zod axios vitest; then
+    echo "fail to add zod,vitest and axios"
+    exit 1
+fi    
+
+
+echo "App is ready"
