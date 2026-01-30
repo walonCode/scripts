@@ -3,7 +3,7 @@
 # checking we the user has bun or node or deno install
 
 declare -A INSTALL_HINTS=(
-    [node]="https://node.org"
+    [node]="https://nodejs.org"
     [bun]="https://bun.sh"
 )
 
@@ -15,7 +15,7 @@ declare -A PACKAGE_MANAGER=(
 project_name="${1:-.}"
 project_name="${project_name// /-}"
 
-TOOLS=(node bun deno)
+TOOLS=(node bun)
 found=false
 
 found_tool=""
@@ -36,26 +36,27 @@ if ! $found;then
     exit 1
 fi
 
-if ! "${PACKAGE_MANAGER[$found_tool]} create hono@latest $project_name"; then
+if ! "${PACKAGE_MANAGER[$found_tool]}" create hono@latest "$project_name"; then
     echo "fail to create the hono app"
+    exit 1
 fi
 
 # moving in to the project root dir 
 cd "$BASE_DIR/$project_name"
 
 # adding zod, drizzle stuff bun-types
-if ! "${PACKAGE_MANAGER[$found_tool]} add zod drizzle-orm pg"; then
+if ! "${PACKAGE_MANAGER[$found_tool]}" add zod drizzle-orm pg; then
     echo "fail to install zod, drizzle-orm pg"
     exit 1
 fi
 
-if ! "${PACKAGE_MANAGER[$found_tool]} -D add bun-types @biomejs/biome drizzle-kit @types/pg"; then
-    echo "fail to install bun-types drizzle-kit @biomejs/biome and @types/pg"
+if ! "${PACKAGE_MANAGER[$found_tool]}" -D add @types/bun @biomejs/biome drizzle-kit @types/pg; then
+    echo "fail to install @types/bun drizzle-kit @biomejs/biome and @types/pg"
     exit 1
 fi
 
 #setting up biome
-if ! "${PACKAGE_MANAGER[$found_tool]} exec biome init"; then
+if ! "${PACKAGE_MANAGER[$found_tool]}" exec biome init; then
     echo "fail to initialize biome"
     exit 1
 fi
@@ -91,4 +92,21 @@ cd src/
 if ! mkdir validator routes db middlewares lib types scripts utils; then
     echo "fail to create the validator routes types scripts db middleware libs and utils folders"
     exit 1
-fi    
+fi 
+
+# making the db files needed
+
+cd db/
+
+if ! touch drizzle.ts schema.ts; then
+    echo "fail to created the needed db files"
+    exit 1
+fi
+
+# going back to the root
+cd ../../
+
+# finish creating the app
+echo "                                            "
+echo "..............Hono APP Created.............."
+echo "                                            "
