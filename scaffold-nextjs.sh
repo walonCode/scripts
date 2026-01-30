@@ -2,9 +2,8 @@
 set -e
 
 # checking we the user has bun or node or deno install
-
 declare -A INSTALL_HINTS=(
-    [node]="https://node.org"
+    [node]="https://nodejs.org"
     [bun]="https://bun.sh"
 )
 
@@ -16,7 +15,7 @@ declare -A PACKAGE_MANAGER=(
 project_name="${1:-.}"
 project_name="${project_name// /-}"
 
-TOOLS=(node bun deno)
+TOOLS=(node bun)
 found=false
 
 found_tool=""
@@ -90,12 +89,12 @@ EOF
 cd ../
 
 # adding the tool to use drizzle and postgres sql with docker
-if ! pnpm add pg drizzle-orm; then
+if ! "${PACKAGE_MANAGER[$found_tool]}" add pg drizzle-orm; then
     echo "fail to add pg and drizzle-orm"
     exit 1
 fi    
 
-if ! pnpm add -D drizzle-kit @types/pg; then
+if ! "${PACKAGE_MANAGER[$found_tool]}" add -D drizzle-kit @types/pg; then
     echo "fail to add drizzle-ki and @types/pg"
     exit 1
 fi
@@ -135,7 +134,7 @@ export default defineConfig({
 EOF
 
 #adding zod, axios 
-if ! pnpm add zod axios vitest; then
+if ! "${PACKAGE_MANAGER[$found_tool]}" add zod axios vitest; then
     echo "fail to add zod,vitest and axios"
     exit 1
 fi    
